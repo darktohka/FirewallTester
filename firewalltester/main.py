@@ -5,60 +5,60 @@ import json, socket
 class Main(object):
 
     def __init__(self):
-        try:
+        if os.path.exists('settings.json'):
             with open('settings.json', 'r') as f:
                 self.settings = json.load(f)
-        except:
+        else:
             self.settings = {}
 
-        defaultSettings = {'servers': {}, 'webhook': ''}
+        default_settings = {'servers': {}, 'webhook': ''}
         edited = False
 
-        for key, value in defaultSettings.items():
+        for key, value in default_settings.items():
             if key not in self.settings:
                 self.settings[key] = value
                 edited = True
 
         if edited:
-            self.saveSettings()
+            self.save_settings()
 
         self.webhook = self.settings['webhook']
         self.servers = self.settings['servers']
-        self.checkServers(self.servers)
+        self.check_servers(self.servers)
 
-    def saveSettings(self):
+    def save_settings(self):
         with open('settings.json', 'w') as f:
             json.dump(self.settings, f, sort_keys=True, indent=4, separators=(',', ': '))
 
-    def checkServers(self, servers):
-        allOpenPorts = {}
+    def check_servers(self, servers):
+        all_open_ports = {}
 
         for name, server in sorted(servers.items()):
-            openPorts = self.checkOpenPorts(server)
+            open_ports = self.check_open_ports(server)
 
-            if openPorts:
-                allOpenPorts[name] = openPorts
+            if open_ports:
+                all_open_ports[name] = open_ports
 
-        if allOpenPorts:
-            message = "@everyone Some of your firewalls are down!\n\n"
+        if all_open_ports:
             messages = []
 
-            for name, openPorts in allOpenPorts.items():
+            for name, open_ports in all_open_ports.items():
                 ip = servers[name]['ip']
-                messages.append('**{0}** - IP *{1}* - Open ports: **{2}**'.format(name, ip, ', '.join(str(port) for port in openPorts)))
+                open_ports = ', '.join(str(port) for port in open_ports)
+                messages.append(f'**{name}** - IP *{ip}* - Open ports: **{open_ports}**')
 
-            message += '\n'.join(messages)
-            self.sendWebhook(self.webhook, message)
+            messages = '\n'.join(messages)
+            self.send_webhook(self.webhook, f'@everyone Some of your firewalls are down!\n\n{messages}')
 
-    def checkOpenPorts(self, server):
-        return [port for port in server['ports'] if self.isPortOpen(server['ip'], port)]
+    def check_open_ports(self, server):
+        return [port for port in server['ports'] if self.is_port_open(server['ip'], port)]
 
-    def isPortOpen(self, host, port):
+    def is_port_open(self, host, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(0.5)
             return sock.connect_ex((host, port)) == 0
 
-    def sendWebhook(self, webhook, message):
+    def send_webhook(self, webhook, message):
         if not webhook:
             print(message)
             return
