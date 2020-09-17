@@ -1,0 +1,12 @@
+.git
+.github
+scripts
+
+__pycache__
+
+Dockerfile
+README.md
+settings.json
+.gitignore
+
+*.bak
