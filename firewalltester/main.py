@@ -1,6 +1,6 @@
 from contextlib import closing
 import requests
-import json, socket
+import json, socket, os
 
 class Main(object):
 
