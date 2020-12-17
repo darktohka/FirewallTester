@@ -1,4 +1,4 @@
-FROM python:rc-alpine
+FROM python:alpine
 
 ENV SHELL /bin/sh
 ENV LANG C.UTF-8
@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 ENV PIP_NO_CACHE_DIR 0
 
-COPY . /srv
+COPY requirements.txt /srv
 WORKDIR /srv
 
 RUN \
@@ -19,6 +19,8 @@ RUN \
     && chown -R firewalltester:firewalltester . \
 # Cleanup
     && rm -rf /tmp/*
+
+COPY . /srv
 
 USER firewalltester
 ENTRYPOINT ["python", "-m", "firewalltester.main"]
