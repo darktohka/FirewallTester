@@ -11,7 +11,7 @@ class Main(object):
         else:
             self.settings = {}
 
-        default_settings = {'servers': {}, 'webhook': ''}
+        default_settings = {'servers': {}, 'webhook': '', 'healthcheck_url': ''}
         edited = False
 
         for key, value in default_settings.items():
@@ -24,13 +24,16 @@ class Main(object):
 
         self.webhook = self.settings['webhook']
         self.servers = self.settings['servers']
-        self.check_servers(self.servers)
+        self.healthcheck_url = self.settings['healthcheck_url']
 
     def save_settings(self):
         with open('settings.json', 'w') as f:
             json.dump(self.settings, f, sort_keys=True, indent=4, separators=(',', ': '))
 
-    def check_servers(self, servers):
+    def check_servers(self, servers=None):
+        if servers is None:
+            servers = self.servers
+
         all_open_ports = {}
 
         for name, server in sorted(servers.items()):
@@ -66,5 +69,11 @@ class Main(object):
         for msg in [message[x:x+19980] for x in range(0, len(message), 19980)]:
             requests.post(webhook, headers={'User-Agent': 'Mozilla/5.0'}, data={'content': msg})
 
+    def run_healthcheck(self):
+        if self.healthcheck_url:
+            requests.get(self.healthcheck_url, timeout=10)
+
 if __name__ == '__main__':
     main = Main()
+    main.check_servers()
+    main.run_healthcheck()
